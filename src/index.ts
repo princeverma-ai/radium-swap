@@ -3,7 +3,7 @@ import "dotenv/config";
 
 import swap from "./swap";
 import quote from "./quote";
-
+import chart from "./chart";
 const app = express();
 
 // ENV
@@ -54,6 +54,21 @@ app.post("/quote", async (req, res) => {
 
     res.status(200).send({
       quoteResult,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).send({
+      message: "Error getting quote",
+    });
+  }
+});
+
+app.post("/chart", async (req, res) => {
+  try {
+    const chartResult = await chart(req.body.tokenAddress);
+
+    res.status(200).send({
+      chartResult,
     });
   } catch (error) {
     console.log(error);
