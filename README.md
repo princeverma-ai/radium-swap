@@ -31,8 +31,3 @@ Edit the configuration in `src/index.ts` editing:
 - The tokens to swap
 - The liquidity file to pull the pool info from
 
-Then run:
-
-```sh
-yarn swap
-```

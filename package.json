@@ -4,7 +4,9 @@
   "description": "An example to swap tokens on Solana using the Raydium SDK.",
   "main": "index.js",
   "scripts": {
-    "start": "nodemon"
+    "start": "node dist/index.js",
+    "dev": "nodemon",
+    "build": "tsc"
   },
   "author": "DZ",
   "license": "MIT",
