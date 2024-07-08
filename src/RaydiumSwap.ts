@@ -267,6 +267,14 @@ class RaydiumSwap {
     const quote = await this.calcAmountOut(poolKeys, amount, swapInDirection);
     return quote;
   }
+
+  async getTokenPrice(mintA: string, mintB: string) {
+    const poolKeys = this.findPoolInfoForTokens(mintA, mintB);
+    if (!poolKeys) throw new Error("Pool not found for given tokens.");
+
+    const quote = await this.calcAmountOut(poolKeys, 1, true); // Using 1 unit for calculation
+    return quote.currentPrice;
+  }
 }
 
 export default RaydiumSwap;

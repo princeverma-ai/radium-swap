@@ -3,7 +3,7 @@ import "dotenv/config";
 
 import swap from "./swap";
 import quote from "./quote";
-import chart from "./chart";
+import getTokenPrice from "./price";
 const app = express();
 
 // ENV
@@ -63,17 +63,21 @@ app.post("/quote", async (req, res) => {
   }
 });
 
-app.post("/chart", async (req, res) => {
+app.post("/price", async (req, res) => {
   try {
-    const chartResult = await chart(req.body.tokenAddress);
+    const swapConfig = {
+      ...defaultSwapConfig,
+      ...req.body,
+    };
+    const priceResult = await getTokenPrice(swapConfig);
 
     res.status(200).send({
-      chartResult,
+      priceResult,
     });
   } catch (error) {
     console.log(error);
     res.status(500).send({
-      message: "Error getting quote",
+      message: "Error getting prices",
     });
   }
 });
