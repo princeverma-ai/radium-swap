@@ -1,3 +1,4 @@
+import path from "path";
 import {
   Connection,
   PublicKey,
@@ -35,18 +36,49 @@ class RaydiumSwap {
   }
 
   async loadPoolKeys(liquidityFile: string) {
-    const liquidityJsonResp = await fetch(liquidityFile);
-    if (!liquidityJsonResp.ok) return;
-    const liquidityJson = (await liquidityJsonResp.json()) as {
-      official: any;
-      unOfficial: any;
-    };
-    const allPoolKeysJson = [
-      ...(liquidityJson?.official ?? []),
-      ...(liquidityJson?.unOfficial ?? []),
-    ];
+    const filePath = path.join(__dirname, "poolData", "liquidity_mainnet.json");
 
-    this.allPoolKeysJson = allPoolKeysJson;
+    let liquidityJson: any = { official: null, unOfficial: null };
+
+    try {
+      // Check if the file exists
+      const fileExists = await fs.promises
+        .access(filePath, fs.constants.F_OK)
+        .then(() => true)
+        .catch(() => false);
+
+      if (fileExists) {
+        // Read the file if it exists
+        const fileContent = await fs.promises.readFile(filePath, "utf-8");
+        // Process the file content here
+        liquidityJson = JSON.parse(fileContent);
+        console.log("Using cached liquidity data.");
+      } else {
+        // Fetch the file if it doesn't exist
+        const liquidityJsonResp = await fetch(liquidityFile);
+        if (!liquidityJsonResp.ok) return;
+        liquidityJson = await liquidityJsonResp.json();
+
+        // Save the fetched data to the file
+        fs.writeFile(filePath, JSON.stringify(liquidityJson), (err) => {
+          if (err) {
+            console.error("Error writing file:", err);
+          } else {
+            console.log("File written successfully.");
+          }
+        });
+        console.log("Fetched and saved liquidity data.");
+      }
+
+      const allPoolKeysJson = [
+        ...(liquidityJson?.official ?? []),
+        ...(liquidityJson?.unOfficial ?? []),
+      ];
+
+      this.allPoolKeysJson = allPoolKeysJson;
+    } catch (error) {
+      console.error("Error loading pool keys:", error);
+    }
   }
 
   findPoolInfoForTokens(mintA: string, mintB: string) {

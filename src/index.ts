@@ -1,6 +1,7 @@
 import express from "express";
 import "dotenv/config";
-
+import fs from "fs";
+import path from "path";
 import swap from "./swap";
 import quote from "./quote";
 import getTokenPrice from "./price";
@@ -24,12 +25,36 @@ const defaultSwapConfig = {
   maxRetries: 20,
 };
 
-app.post("/swap", async (req, res) => {
+app.post("/swap/buy", async (req, res) => {
+  try {
+    const swapConfig = {
+      ...defaultSwapConfig,
+    };
+    swapConfig.direction = "in";
+    swapConfig.tokenBAddress = req.body.tokenAddress;
+    swapConfig.tokenAAmount = req.body.solAmount;
+    const swapResult = await swap(swapConfig);
+
+    res.status(200).send({
+      swapResult,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).send({
+      message: "Error swapping tokens",
+    });
+  }
+});
+app.post("/swap/sell", async (req, res) => {
   try {
     const swapConfig = {
       ...defaultSwapConfig,
       ...req.body,
     };
+
+    swapConfig.direction = "out";
+    swapConfig.tokenBAddress = req.body.tokenAddress;
+    swapConfig.tokenAAmount = req.body.solAmount;
     const swapResult = await swap(swapConfig);
 
     res.status(200).send({
@@ -43,13 +68,36 @@ app.post("/swap", async (req, res) => {
   }
 });
 
-app.post("/quote", async (req, res) => {
+app.post("/quote/buy", async (req, res) => {
   try {
     const swapConfig = {
       ...defaultSwapConfig,
       ...req.body,
     };
+    swapConfig.direction = "in";
+    swapConfig.tokenBAddress = req.body.tokenAddress;
+    swapConfig.tokenAAmount = req.body.solAmount;
+    const quoteResult = await quote(swapConfig);
 
+    res.status(200).send({
+      quoteResult,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).send({
+      message: "Error getting quote",
+    });
+  }
+});
+app.post("/quote/sell", async (req, res) => {
+  try {
+    const swapConfig = {
+      ...defaultSwapConfig,
+      ...req.body,
+    };
+    swapConfig.direction = "out";
+    swapConfig.tokenBAddress = req.body.tokenAddress;
+    swapConfig.tokenAAmount = req.body.solAmount;
     const quoteResult = await quote(swapConfig);
 
     res.status(200).send({
@@ -80,6 +128,24 @@ app.post("/price", async (req, res) => {
       message: "Error getting prices",
     });
   }
+});
+
+app.delete("/pool", async (req, res) => {
+  //use fs module to delete the file
+  const filePath = path.join(__dirname, "poolData", "liquidity_mainnet.json");
+
+  fs.unlink(filePath, (err) => {
+    if (err) {
+      console.error("Error deleting file:", err);
+      return res.status(500).send({
+        message: "Error deleting pool keys",
+      });
+    }
+    console.log("File deleted successfully");
+  });
+  res.status(200).send({
+    message: "Pool keys deleted",
+  });
 });
 
 app.listen(port, () => {
