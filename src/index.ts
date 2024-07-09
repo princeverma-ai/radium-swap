@@ -25,7 +25,7 @@ const defaultSwapConfig = {
   maxRetries: 20,
 };
 
-app.post("/swap/buy", async (req, res) => {
+app.post("/api/v1/buy", async (req, res) => {
   try {
     const swapConfig = {
       ...defaultSwapConfig,
@@ -45,7 +45,7 @@ app.post("/swap/buy", async (req, res) => {
     });
   }
 });
-app.post("/swap/sell", async (req, res) => {
+app.post("/api/v1/sell", async (req, res) => {
   try {
     const swapConfig = {
       ...defaultSwapConfig,
@@ -68,7 +68,7 @@ app.post("/swap/sell", async (req, res) => {
   }
 });
 
-app.post("/quote/buy", async (req, res) => {
+app.post("/api/v1/buy/quote", async (req, res) => {
   try {
     const swapConfig = {
       ...defaultSwapConfig,
@@ -89,7 +89,7 @@ app.post("/quote/buy", async (req, res) => {
     });
   }
 });
-app.post("/quote/sell", async (req, res) => {
+app.post("/api/v1/sell/quote", async (req, res) => {
   try {
     const swapConfig = {
       ...defaultSwapConfig,
@@ -111,7 +111,7 @@ app.post("/quote/sell", async (req, res) => {
   }
 });
 
-app.post("/price", async (req, res) => {
+app.post("/api/v1/price", async (req, res) => {
   try {
     const swapConfig = {
       ...defaultSwapConfig,
@@ -130,7 +130,7 @@ app.post("/price", async (req, res) => {
   }
 });
 
-app.delete("/pool", async (req, res) => {
+app.delete("/api/v1/pool", async (req, res) => {
   //use fs module to delete the file
   const filePath = path.join(__dirname, "poolData", "liquidity_mainnet.json");
 
