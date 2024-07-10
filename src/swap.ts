@@ -62,6 +62,8 @@ const swap = async (swapConfig: {
           swapConfig.maxRetries
         );
 
+    console.log(txid);
+
     return `https://solscan.io/tx/${txid}`;
   }
 };

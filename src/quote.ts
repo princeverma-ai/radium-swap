@@ -1,6 +1,6 @@
 import RaydiumSwap from "./RaydiumSwap";
 
-const swap = async (swapConfig: {
+const quote = async (swapConfig: {
   tokenAAmount: number;
   tokenAAddress: string;
   tokenBAddress: string;
@@ -12,7 +12,7 @@ const swap = async (swapConfig: {
   maxRetries: number;
 }) => {
   const raydiumSwap = new RaydiumSwap(process.env.RPC_URL);
-  console.log(`Raydium swap initialized`);
+  console.log(`Raydium quote initialized`);
   console.log(
     `Swapping ${swapConfig.tokenAAmount} of ${swapConfig.tokenAAddress} for ${swapConfig.tokenBAddress}...`
   );
@@ -30,4 +30,4 @@ const swap = async (swapConfig: {
   return quote;
 };
 
-export default swap;
+export default quote;

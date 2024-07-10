@@ -15,7 +15,7 @@ app.use(express.json());
 
 const defaultSwapConfig = {
   simulateSwap: true, // Send tx when false, simulate tx when true
-  useVersionedTransaction: true,
+  useVersionedTransaction: false,
   tokenAAmount: 0.01, // Swap 0.01 SOL for USDT in this example
   tokenAAddress: "So11111111111111111111111111111111111111112", // Token to swap for the other, SOL in this case
   tokenBAddress: "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v", // USDC address
@@ -29,6 +29,7 @@ app.post("/api/v1/buy", async (req, res) => {
   try {
     const swapConfig = {
       ...defaultSwapConfig,
+      ...req.body,
     };
     swapConfig.direction = "in";
     swapConfig.tokenBAddress = req.body.tokenAddress;
@@ -68,6 +69,20 @@ app.post("/api/v1/sell", async (req, res) => {
   }
 });
 
+function formatAmount(amount) {
+  const numerator = parseInt(amount.numerator, 16);
+  const denominator = parseInt(amount.denominator, 16);
+  const value = numerator / denominator;
+  return `${value.toFixed(amount.currency.decimals)} `;
+}
+
+function formatPrice(price) {
+  const numerator = parseInt(price.numerator, 16);
+  const denominator = parseInt(price.denominator, 16);
+  const value = numerator / denominator;
+  return `${value.toFixed(price.baseCurrency.decimals)} `;
+}
+
 app.post("/api/v1/buy/quote", async (req, res) => {
   try {
     const swapConfig = {
@@ -79,8 +94,31 @@ app.post("/api/v1/buy/quote", async (req, res) => {
     swapConfig.tokenAAmount = req.body.solAmount;
     const quoteResult = await quote(swapConfig);
 
+    console.log(quoteResult);
+
+    const amountIn = formatAmount(quoteResult.amountIn);
+    const amountOut = formatAmount(quoteResult.amountOut);
+    const minAmountOut = formatAmount(quoteResult.minAmountOut);
+    const currentPrice = formatPrice(quoteResult.currentPrice);
+    const executionPrice = formatPrice(quoteResult.executionPrice);
+    const priceImpact = `${
+      (parseInt(quoteResult.priceImpact.numerator, 16) /
+        parseInt(quoteResult.priceImpact.denominator, 16)) *
+      100
+    }%`;
+    const fee = formatAmount(quoteResult.fee);
+
     res.status(200).send({
-      quoteResult,
+      baseMint: swapConfig.tokenAAddress,
+      quoteMint: swapConfig.tokenBAddress,
+      baseAmount: swapConfig.tokenAAmount,
+      amountIn,
+      amountOut,
+      minAmountOut,
+      currentPrice,
+      executionPrice,
+      priceImpact,
+      fee,
     });
   } catch (error) {
     console.log(error);
@@ -99,9 +137,31 @@ app.post("/api/v1/sell/quote", async (req, res) => {
     swapConfig.tokenBAddress = req.body.tokenAddress;
     swapConfig.tokenAAmount = req.body.solAmount;
     const quoteResult = await quote(swapConfig);
+    console.log(quoteResult);
+
+    const amountIn = formatAmount(quoteResult.amountIn);
+    const amountOut = formatAmount(quoteResult.amountOut);
+    const minAmountOut = formatAmount(quoteResult.minAmountOut);
+    const currentPrice = formatPrice(quoteResult.currentPrice);
+    const executionPrice = formatPrice(quoteResult.executionPrice);
+    const priceImpact = `${
+      (parseInt(quoteResult.priceImpact.numerator, 16) /
+        parseInt(quoteResult.priceImpact.denominator, 16)) *
+      100
+    }%`;
+    const fee = formatAmount(quoteResult.fee);
 
     res.status(200).send({
-      quoteResult,
+      baseMint: swapConfig.tokenAAddress,
+      quoteMint: swapConfig.tokenBAddress,
+      baseAmount: swapConfig.tokenAAmount,
+      amountIn,
+      amountOut,
+      minAmountOut,
+      currentPrice,
+      executionPrice,
+      priceImpact,
+      fee,
     });
   } catch (error) {
     console.log(error);
@@ -110,6 +170,27 @@ app.post("/api/v1/sell/quote", async (req, res) => {
     });
   }
 });
+function formatPriceResult(priceResult) {
+  const numerator = parseInt(priceResult.numerator, 16);
+  const denominator = parseInt(priceResult.denominator, 16);
+  const value = numerator / denominator;
+
+  return {
+    price: `${value.toFixed(priceResult.baseCurrency.decimals)}`,
+    baseCurrency: {
+      mint: priceResult.baseCurrency.mint,
+      decimals: priceResult.baseCurrency.decimals,
+    },
+    quoteCurrency: {
+      mint: priceResult.quoteCurrency.mint,
+      decimals: priceResult.quoteCurrency.decimals,
+    },
+    scalar: {
+      numerator: parseInt(priceResult.scalar.numerator, 16),
+      denominator: parseInt(priceResult.scalar.denominator, 16),
+    },
+  };
+}
 
 app.post("/api/v1/price", async (req, res) => {
   try {
@@ -118,9 +199,9 @@ app.post("/api/v1/price", async (req, res) => {
       ...req.body,
     };
     const priceResult = await getTokenPrice(swapConfig);
-
+    const prices = formatPriceResult(priceResult);
     res.status(200).send({
-      priceResult,
+      prices,
     });
   } catch (error) {
     console.log(error);
